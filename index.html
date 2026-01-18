@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Photo Book</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="book-wrapper">
+            <div class="book">
+                <!-- Left page (current page) -->
+                <div class="page page-left" data-page="left">
+                    <div class="page-content">
+                        <div class="page-number">1</div>
+                        <div class="photo">
+                            <div class="placeholder-photo" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <span>Photo 1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right page (current page) -->
+                <div class="page page-right" data-page="right">
+                    <div class="page-content">
+                        <div class="page-number">2</div>
+                        <div class="photo">
+                            <div class="placeholder-photo" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <span>Photo 2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Turning page (animated page) -->
+                <div class="page page-turn">
+                    <div class="page-front">
+                        <div class="page-content">
+                            <div class="page-number"></div>
+                            <div class="photo">
+                                <div class="placeholder-photo"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-back">
+                        <div class="page-content">
+                            <div class="page-number"></div>
+                            <div class="photo">
+                                <div class="placeholder-photo"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="navigation">
+            <button id="prevBtn" class="nav-btn">← Previous</button>
+            <span id="pageIndicator" class="page-indicator">Page 1-2</span>
+            <button id="nextBtn" class="nav-btn">Next →</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
