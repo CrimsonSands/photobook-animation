@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Photo Book - Mobile Responsive</title>
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: 'Georgia', serif;
+    background: radial-gradient(ellipse at center, #8b7355 0%, #5a4a3a 50%, #3d2f24 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-x pan-y;
+    padding: 10px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 100vw;
+}
+
+.book-wrapper {
+    perspective: 2000px;
+    perspective-origin: 50% 20%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.book {
+    width: 900px;
+    height: 600px;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(55deg) rotateZ(0deg);
+    filter: drop-shadow(0 40px 80px rgba(0, 0, 0, 0.7));
+}
+
+.book-spine {
+    position: absolute;
+    width: 30px;
+    height: 600px;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%) translateZ(12px);
+    background: linear-gradient(to right, 
+        #050505 0%, 
+        #0f0f0f 10%,
+        #1a1a1a 20%, 
+        #2a2a2a 50%, 
+        #1a1a1a 80%,
+        #0f0f0f 90%,
+        #050505 100%);
+    box-shadow: 
+        inset 5px 0 12px rgba(0, 0, 0, 0.95), 
+        inset -5px 0 12px rgba(0, 0, 0, 0.95), 
+        0 0 35px rgba(0, 0, 0, 0.7);
+    z-index: 50;
+}
+
+.page {
+    position: absolute;
+    width: 435px;
+    height: 600px;
+    background: #faf9f7;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+.page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.015) 2px, rgba(0,0,0,.015) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.015) 2px, rgba(0,0,0,.015) 4px);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.page-left {
+    left: 0;
+    transform-origin: right center;
+    border-right: 4px solid #d0cec8;
+    box-shadow: 
+        inset -12px 0 25px rgba(0, 0, 0, 0.12), 
+        -5px 0 15px rgba(0, 0, 0, 0.25), 
+        0 12px 55px rgba(0, 0, 0, 0.35);
+    transform: translateZ(10px);
+}
+
+.page-right {
+    right: 0;
+    transform-origin: left center;
+    border-left: 4px solid #d0cec8;
+    box-shadow: 
+        inset 12px 0 25px rgba(0, 0, 0, 0.12), 
+        5px 0 15px rgba(0, 0, 0, 0.25), 
+        0 12px 55px rgba(0, 0, 0, 0.35);
+    transform: translateZ(10px);
+}
+
+.page-turn-container-right {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 435px;
+    height: 600px;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+}
+
+.page-turn-container-right.active {
+    display: block;
+}
+
+.page-turn-container-left {
+    position: absolute;
+    right: 50%;
+    top: 0;
+    width: 435px;
+    height: 600px;
+    transform-origin: right center;
+    transform-style: preserve-3d;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+}
+
+.page-turn-container-left.active {
+    display: block;
+}
+
+.page-turn {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: none;
+    backface-visibility: hidden;
+}
+
+.page-turn-right {
+    transform-origin: left center;
+    left: 0;
+}
+
+.page-turn-left {
+    transform-origin: right center;
+    right: 0;
+}
+
+.page-turn.animating {
+    transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-front,
+.page-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background: #faf9f7;
+    overflow: hidden;
+}
+
+.page-front::before,
+.page-back::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.015) 2px, rgba(0,0,0,.015) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,.015) 2px, rgba(0,0,0,.015) 4px);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.page-back {
+    transform: rotateY(180deg);
+}
+
+.curl-shadow {
+    position: absolute;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+}
+
+.curl-shadow-right {
+    left: 0;
+    background: linear-gradient(to right, 
+        rgba(0,0,0,0.7) 0%, 
+        rgba(0,0,0,0.6) 5%,
+        rgba(0,0,0,0.4) 15%,
+        rgba(0,0,0,0.25) 35%, 
+        rgba(0,0,0,0.12) 60%, 
+        transparent 100%);
+}
+
+.curl-shadow-left {
+    right: 0;
+    background: linear-gradient(to left, 
+        rgba(0,0,0,0.7) 0%, 
+        rgba(0,0,0,0.6) 5%,
+        rgba(0,0,0,0.4) 15%,
+        rgba(0,0,0,0.25) 35%, 
+        rgba(0,0,0,0.12) 60%, 
+        transparent 100%);
+}
+
+.page-content {
+    padding: 45px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 2;
+}
+
+.page-number {
+    position: absolute;
+    bottom: 30px;
+    font-size: 13px;
+    color: #888;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+}
+
+.page-left .page-number {
+    left: 45px;
+}
+
+.page-right .page-number {
+    right: 45px;
+}
+
+.page-front .page-number {
+    right: 45px;
+}
+
+.page-back .page-number {
+    left: 45px;
+}
+
+.photo {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), inset 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    font-family: 'Georgia', serif;
+    position: relative;
+}
+
+.placeholder-photo::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 35%, transparent 65%, rgba(0,0,0,0.08) 100%);
+    pointer-events: none;
+}
+
+.drag-corner-right {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 170px;
+    height: 170px;
+    cursor: grab;
+    z-index: 200;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.drag-corner-right:active {
+    cursor: grabbing;
+}
+
+.drag-corner-right::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(135deg, transparent 0%, transparent 45%, rgba(255,255,255,0.5) 45%, rgba(255,255,255,0.5) 55%, transparent 55%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.3) 0%, transparent 75%);
+    opacity: 0.95;
+}
+
+.drag-corner-left {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 170px;
+    height: 170px;
+    cursor: grab;
+    z-index: 200;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.drag-corner-left:active {
+    cursor: grabbing;
+}
+
+.drag-corner-left::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(45deg, transparent 0%, transparent 45%, rgba(255,255,255,0.5) 45%, rgba(255,255,255,0.5) 55%, transparent 55%),
+        radial-gradient(circle at bottom left, rgba(255,255,255,0.3) 0%, transparent 75%);
+    opacity: 0.95;
+}
+
+.navigation {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.nav-btn {
+    padding: 14px 28px;
+    font-size: 16px;
+    background: linear-gradient(to bottom, #f8f8f8, #e5e5e5);
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    font-family: 'Georgia', serif;
+    color: #2a2a2a;
+    font-weight: 600;
+}
+
+.nav-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    background: linear-gradient(to bottom, #fff, #f0f0f0);
+}
+
+.nav-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.page-indicator {
+    color: #e8dcc8;
+    font-size: 17px;
+    font-weight: 400;
+    min-width: 110px;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    letter-spacing: 1.5px;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+}
+
+.instructions {
+    color: #c9b89a;
+    font-size: 14px;
+    text-align: center;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    opacity: 0.9;
+    margin-top: -10px;
+    padding: 0 10px;
+}
+
+/* Tablet */
+@media (max-width: 950px) {
+    .book {
+        width: 680px;
+        height: 450px;
+    }
+    .book-spine {
+        width: 24px;
+        height: 450px;
+    }
+    .page {
+        width: 328px;
+        height: 450px;
+    }
+    .page-turn-container-right,
+    .page-turn-container-left {
+        width: 328px;
+        height: 450px;
+    }
+    .page-content {
+        padding: 35px;
+    }
+    .placeholder-photo {
+        font-size: 24px;
+    }
+    .drag-corner-right,
+    .drag-corner-left {
+        width: 140px;
+        height: 140px;
+    }
+}
+
+/* Mobile - Large phones */
+@media (max-width: 700px) {
+    body {
+        padding: 5px;
+    }
+    .container {
+        gap: 25px;
+    }
+    .book {
+        width: 480px;
+        height: 320px;
+        transform: rotateX(45deg) rotateZ(0deg);
+    }
+    .book-spine {
+        width: 20px;
+        height: 320px;
+    }
+    .page {
+        width: 230px;
+        height: 320px;
+        border-width: 3px;
+    }
+    .page-turn-container-right,
+    .page-turn-container-left {
+        width: 230px;
+        height: 320px;
+    }
+    .page-content {
+        padding: 25px;
+    }
+    .placeholder-photo {
+        font-size: 18px;
+    }
+    .drag-corner-right,
+    .drag-corner-left {
+        width: 110px;
+        height: 110px;
+    }
+    .nav-btn {
+        padding: 12px 22px;
+        font-size: 14px;
+    }
+    .page-indicator {
+        font-size: 15px;
+        min-width: 90px;
+    }
+    .instructions {
+        font-size: 13px;
+    }
+}
+
+/* Mobile - Small phones (iPhone SE, etc) */
+@media (max-width: 450px) {
+    body {
+        align-items: flex-start;
+        padding-top: 20px;
+    }
+    .container {
+        gap: 20px;
+    }
+    .book {
+        width: 340px;
+        height: 230px;
+        transform: rotateX(40deg) rotateZ(0deg);
+    }
+    .book-spine {
+        width: 16px;
+        height: 230px;
+    }
+    .page {
+        width: 162px;
+        height: 230px;
+        border-width: 2px;
+    }
+    .page-turn-container-right,
+    .page-turn-container-left {
+        width: 162px;
+        height: 230px;
+    }
+    .page-content {
+        padding: 18px;
+    }
+    .placeholder-photo {
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+    .drag-corner-right,
+    .drag-corner-left {
+        width: 90px;
+        height: 90px;
+    }
+    .navigation {
+        gap: 15px;
+    }
+    .nav-btn {
+        padding: 10px 18px;
+        font-size: 13px;
+    }
+    .page-indicator {
+        font-size: 14px;
+        min-width: 85px;
+        letter-spacing: 1px;
+    }
+    .instructions {
+        font-size: 12px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+    .book {
+        width: 300px;
+        height: 200px;
+        transform: rotateX(35deg) rotateZ(0deg);
+    }
+    .book-spine {
+        width: 14px;
+        height: 200px;
+    }
+    .page {
+        width: 143px;
+        height: 200px;
+    }
+    .page-turn-container-right,
+    .page-turn-container-left {
+        width: 143px;
+        height: 200px;
+    }
+    .page-content {
+        padding: 15px;
+    }
+    .placeholder-photo {
+        font-size: 12px;
+    }
+    .drag-corner-right,
+    .drag-corner-left {
+        width: 80px;
+        height: 80px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="book-wrapper">
+            <div class="book">
+                <div class="book-spine"></div>
+
+                <div class="page page-left">
+                    <div class="page-content">
+                        <div class="page-number">1</div>
+                        <div class="photo">
+                            <div class="placeholder-photo" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <span>Photo 1</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="drag-corner-left" id="dragCornerLeft"></div>
+                </div>
+
+                <div class="page page-right">
+                    <div class="page-content">
+                        <div class="page-number">2</div>
+                        <div class="photo">
+                            <div class="placeholder-photo" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                <span>Photo 2</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="drag-corner-right" id="dragCornerRight"></div>
+                </div>
+
+                <div class="page-turn-container-right" id="pageTurnContainerRight">
+                    <div class="page-turn page-turn-right" id="pageTurnRight">
+                        <div class="page-front">
+                            <div class="curl-shadow curl-shadow-right"></div>
+                            <div class="page-content">
+                                <div class="page-number"></div>
+                                <div class="photo">
+                                    <div class="placeholder-photo"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="page-back">
+                            <div class="page-content">
+                                <div class="page-number"></div>
+                                <div class="photo">
+                                    <div class="placeholder-photo"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-turn-container-left" id="pageTurnContainerLeft">
+                    <div class="page-turn page-turn-left" id="pageTurnLeft">
+                        <div class="page-front">
+                            <div class="curl-shadow curl-shadow-left"></div>
+                            <div class="page-content">
+                                <div class="page-number"></div>
+                                <div class="photo">
+                                    <div class="placeholder-photo"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="page-back">
+                            <div class="page-content">
+                                <div class="page-number"></div>
+                                <div class="photo">
+                                    <div class="placeholder-photo"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button id="prevBtn" class="nav-btn">← Prev</button>
+            <span id="pageIndicator" class="page-indicator">Page 1-2</span>
+            <button id="nextBtn" class="nav-btn">Next →</button>
+        </div>
+
+        <div class="instructions">Drag corners to turn pages</div>
+    </div>
+
+    <script>
+class PhotoBook {
+    constructor() {
+        this.currentPage = 0;
+        this.totalPages = 10;
+        this.isAnimating = false;
+        this.isDragging = false;
+        this.dragDirection = null;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.currentRotation = 0;
+
+        this.pages = [
+            { color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', text: 'Photo 1' },
+            { color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', text: 'Photo 2' },
+            { color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', text: 'Photo 3' },
+            { color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', text: 'Photo 4' },
+            { color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', text: 'Photo 5' },
+            { color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', text: 'Photo 6' },
+            { color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', text: 'Photo 7' },
+            { color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', text: 'Photo 8' },
+            { color: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', text: 'Photo 9' },
+            { color: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)', text: 'Photo 10' }
+        ];
+
+        this.init();
+    }
+
+    init() {
+        this.pageLeft = document.querySelector('.page-left');
+        this.pageRight = document.querySelector('.page-right');
+        this.pageTurnContainerRight = document.getElementById('pageTurnContainerRight');
+        this.pageTurnRight = document.getElementById('pageTurnRight');
+        this.pageTurnContainerLeft = document.getElementById('pageTurnContainerLeft');
+        this.pageTurnLeft = document.getElementById('pageTurnLeft');
+        this.dragCornerRight = document.getElementById('dragCornerRight');
+        this.dragCornerLeft = document.getElementById('dragCornerLeft');
+        this.prevBtn = document.getElementById('prevBtn');
+        this.nextBtn = document.getElementById('nextBtn');
+        this.pageIndicator = document.getElementById('pageIndicator');
+
+        this.dragCornerRight.addEventListener('mousedown', (e) => this.startDrag(e, 'forward'));
+        this.dragCornerRight.addEventListener('touchstart', (e) => this.startDrag(e, 'forward'), { passive: false });
+        this.dragCornerLeft.addEventListener('mousedown', (e) => this.startDrag(e, 'backward'));
+        this.dragCornerLeft.addEventListener('touchstart', (e) => this.startDrag(e, 'backward'), { passive: false });
+
+        document.addEventListener('mousemove', (e) => this.onDrag(e));
+        document.addEventListener('touchmove', (e) => this.onDrag(e), { passive: false });
+        document.addEventListener('mouseup', (e) => this.endDrag(e));
+        document.addEventListener('touchend', (e) => this.endDrag(e));
+        document.addEventListener('touchcancel', (e) => this.endDrag(e));
+
+        this.prevBtn.addEventListener('click', () => this.turnToPrevious());
+        this.nextBtn.addEventListener('click', () => this.turnToNext());
+
+        this.updatePages();
+    }
+
+    startDrag(e, direction) {
+        if (this.isAnimating) return;
+        if (direction === 'forward' && this.currentPage >= this.totalPages) return;
+        if (direction === 'backward' && this.currentPage === 0) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        this.isDragging = true;
+        this.dragDirection = direction;
+
+        const touch = e.touches ? e.touches[0] : e;
+        this.dragStartX = touch.clientX;
+        this.dragStartY = touch.clientY;
+
+        if (direction === 'forward') {
+            this.pageTurnContainerRight.classList.add('active');
+            this.pageTurnRight.classList.remove('animating');
+            this.setupTurnPageForward();
+        } else {
+            this.pageTurnContainerLeft.classList.add('active');
+            this.pageTurnLeft.classList.remove('animating');
+            this.setupTurnPageBackward();
+        }
+    }
+
+    onDrag(e) {
+        if (!this.isDragging) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const touch = e.touches ? e.touches[0] : e;
+        const deltaX = this.dragDirection === 'forward' 
+            ? this.dragStartX - touch.clientX 
+            : touch.clientX - this.dragStartX;
+        const deltaY = touch.clientY - this.dragStartY;
+
+        let rotation = Math.max(0, Math.min(180, (deltaX / 280) * 180));
+        const verticalCurl = Math.max(-30, Math.min(30, (deltaY / 120) * 30));
+
+        this.currentRotation = rotation;
+
+        const curlIntensity = Math.sin((rotation / 180) * Math.PI);
+        const liftHeight = curlIntensity * 100;
+        const scaleX = 1 + (curlIntensity * 0.12);
+        const scaleY = 1 + (curlIntensity * 0.06);
+        const skewY = curlIntensity * 8;
+
+        const pageTurn = this.dragDirection === 'forward' ? this.pageTurnRight : this.pageTurnLeft;
+        const rotationSign = this.dragDirection === 'forward' ? -1 : 1;
+
+        pageTurn.style.transform = `
+            rotateY(${rotationSign * rotation}deg)
+            rotateX(${verticalCurl}deg)
+            translateZ(${liftHeight}px)
+            scale3d(${scaleX}, ${scaleY}, 1)
+            skewY(${rotationSign * skewY}deg)
+        `;
+
+        const shadowDistance = curlIntensity * 60;
+        const shadowBlur = 60 + (curlIntensity * 100);
+        const shadowOpacity = 0.45 + (curlIntensity * 0.5);
+
+        pageTurn.style.filter = `
+            drop-shadow(${shadowDistance}px ${shadowDistance}px ${shadowBlur}px rgba(0, 0, 0, ${shadowOpacity}))
+        `;
+
+        const curlShadow = pageTurn.querySelector('.curl-shadow');
+        if (curlShadow) {
+            curlShadow.style.opacity = Math.min(curlIntensity * 1.8, 1);
+        }
+    }
+
+    endDrag(e) {
+        if (!this.isDragging) return;
+
+        this.isDragging = false;
+
+        const threshold = 75;
+
+        if (this.currentRotation > threshold) {
+            if (this.dragDirection === 'forward') {
+                this.completeTurnForward();
+            } else {
+                this.completeTurnBackward();
+            }
+        } else {
+            this.springBack();
+        }
+    }
+
+    completeTurnForward() {
+        this.isAnimating = true;
+        this.pageTurnRight.classList.add('animating');
+        this.pageTurnRight.style.transform = 'rotateY(-180deg) translateZ(0px) scale3d(1, 1, 1) skewY(0deg)';
+        this.pageTurnRight.style.filter = 'drop-shadow(0px 12px 55px rgba(0, 0, 0, 0.35))';
+
+        setTimeout(() => {
+            this.currentPage += 2;
+            this.updatePages();
+            this.resetTurnPage();
+        }, 1000);
+    }
+
+    completeTurnBackward() {
+        this.isAnimating = true;
+        this.pageTurnLeft.classList.add('animating');
+        this.pageTurnLeft.style.transform = 'rotateY(180deg) translateZ(0px) scale3d(1, 1, 1) skewY(0deg)';
+        this.pageTurnLeft.style.filter = 'drop-shadow(0px 12px 55px rgba(0, 0, 0, 0.35))';
+
+        setTimeout(() => {
+            this.currentPage -= 2;
+            this.updatePages();
+            this.resetTurnPage();
+        }, 1000);
+    }
+
+    springBack() {
+        const pageTurn = this.dragDirection === 'forward' ? this.pageTurnRight : this.pageTurnLeft;
+        const rotationSign = this.dragDirection === 'forward' ? 0 : 180;
+        
+        pageTurn.classList.add('animating');
+        pageTurn.style.transform = `rotateY(${rotationSign}deg) translateZ(0px) scale3d(1, 1, 1) skewY(0deg)`;
+        pageTurn.style.filter = 'drop-shadow(0px 12px 55px rgba(0, 0, 0, 0.35))';
+
+        setTimeout(() => {
+            this.resetTurnPage();
+        }, 1000);
+    }
+
+    setupTurnPageForward() {
+        const pageFront = this.pageTurnRight.querySelector('.page-front .placeholder-photo');
+        const pageFrontNumber = this.pageTurnRight.querySelector('.page-front .page-number');
+        const pageBack = this.pageTurnRight.querySelector('.page-back .placeholder-photo');
+        const pageBackNumber = this.pageTurnRight.querySelector('.page-back .page-number');
+
+        if (this.currentPage < this.pages.length) {
+            pageFront.style.background = this.pages[this.currentPage].color;
+            pageFront.innerHTML = `<span>${this.pages[this.currentPage].text}</span>`;
+            pageFrontNumber.textContent = this.currentPage + 1;
+        }
+
+        if (this.currentPage + 1 < this.pages.length) {
+            pageBack.style.background = this.pages[this.currentPage + 1].color;
+            pageBack.innerHTML = `<span>${this.pages[this.currentPage + 1].text}</span>`;
+            pageBackNumber.textContent = this.currentPage + 2;
+        }
+    }
+
+    setupTurnPageBackward() {
+        const pageFront = this.pageTurnLeft.querySelector('.page-front .placeholder-photo');
+        const pageFrontNumber = this.pageTurnLeft.querySelector('.page-front .page-number');
+        const pageBack = this.pageTurnLeft.querySelector('.page-back .placeholder-photo');
+        const pageBackNumber = this.pageTurnLeft.querySelector('.page-back .page-number');
+
+        if (this.currentPage - 1 >= 0 && this.currentPage - 1 < this.pages.length) {
+            pageFront.style.background = this.pages[this.currentPage - 1].color;
+            pageFront.innerHTML = `<span>${this.pages[this.currentPage - 1].text}</span>`;
+            pageFrontNumber.textContent = this.currentPage;
+        }
+
+        if (this.currentPage - 2 >= 0 && this.currentPage - 2 < this.pages.length) {
+            pageBack.style.background = this.pages[this.currentPage - 2].color;
+            pageBack.innerHTML = `<span>${this.pages[this.currentPage - 2].text}</span>`;
+            pageBackNumber.textContent = this.currentPage - 1;
+        }
+    }
+
+    resetTurnPage() {
+        this.pageTurnContainerRight.classList.remove('active');
+        this.pageTurnRight.classList.remove('animating');
+        this.pageTurnRight.style.transform = '';
+        this.pageTurnRight.style.filter = '';
+
+        this.pageTurnContainerLeft.classList.remove('active');
+        this.pageTurnLeft.classList.remove('animating');
+        this.pageTurnLeft.style.transform = '';
+        this.pageTurnLeft.style.filter = '';
+
+        const curlShadows = document.querySelectorAll('.curl-shadow');
+        curlShadows.forEach(shadow => shadow.style.opacity = '');
+
+        this.currentRotation = 0;
+        this.isAnimating = false;
+        this.dragDirection = null;
+    }
+
+    updatePages() {
+        if (this.currentPage > 0) {
+            this.updatePageContent(this.pageLeft, this.currentPage - 1);
+        }
+
+        if (this.currentPage < this.totalPages) {
+            this.updatePageContent(this.pageRight, this.currentPage);
+        }
+
+        this.prevBtn.disabled = this.currentPage === 0;
+        this.nextBtn.disabled = this.currentPage >= this.totalPages;
+        this.dragCornerRight.style.display = this.currentPage >= this.totalPages ? 'none' : 'block';
+        this.dragCornerLeft.style.display = this.currentPage === 0 ? 'none' : 'block';
+
+        const leftPageNum = this.currentPage === 0 ? 1 : this.currentPage;
+        const rightPageNum = this.currentPage + 1;
+        this.pageIndicator.textContent = `Page ${leftPageNum}-${rightPageNum}`;
+    }
+
+    updatePageContent(pageElement, pageIndex) {
+        const photo = pageElement.querySelector('.placeholder-photo');
+        const pageNumber = pageElement.querySelector('.page-number');
+
+        if (pageIndex >= 0 && pageIndex < this.pages.length) {
+            photo.style.background = this.pages[pageIndex].color;
+            photo.innerHTML = `<span>${this.pages[pageIndex].text}</span>`;
+            pageNumber.textContent = pageIndex + 1;
+        }
+    }
+
+    turnToNext() {
+        if (this.isAnimating || this.currentPage >= this.totalPages) return;
+
+        this.pageTurnContainerRight.classList.add('active');
+        this.setupTurnPageForward();
+
+        setTimeout(() => {
+            this.dragDirection = 'forward';
+            this.currentRotation = 180;
+            this.completeTurnForward();
+        }, 50);
+    }
+
+    turnToPrevious() {
+        if (this.isAnimating || this.currentPage === 0) return;
+
+        this.pageTurnContainerLeft.classList.add('active');
+        this.setupTurnPageBackward();
+        this.pageTurnLeft.style.transform = 'rotateY(180deg)';
+
+        setTimeout(() => {
+            this.dragDirection = 'backward';
+            this.currentRotation = 180;
+            this.completeTurnBackward();
+        }, 50);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    new PhotoBook();
+});
+    </script>
+</body>
+</html>
