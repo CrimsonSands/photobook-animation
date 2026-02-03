@@ -1,0 +1,258 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.book-wrapper {
+    perspective: 2000px;
+    perspective-origin: center center;
+}
+
+.book {
+    width: 800px;
+    height: 600px;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateY(-20deg) rotateX(10deg);
+    transition: transform 0.3s ease;
+}
+
+.book:hover {
+    transform: rotateY(-15deg) rotateX(8deg);
+}
+
+.page {
+    position: absolute;
+    width: 400px;
+    height: 600px;
+    background: white;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+.page-left {
+    left: 0;
+    transform-origin: right center;
+    border-right: 2px solid #ddd;
+}
+
+.page-right {
+    right: 0;
+    transform-origin: left center;
+    border-left: 2px solid #ddd;
+}
+
+.page-turn {
+    right: 0;
+    transform-origin: left center;
+    cursor: pointer;
+    z-index: 10;
+    display: none;
+}
+
+.page-turn.active {
+    display: block;
+}
+
+.page-turn.animating {
+    pointer-events: none;
+}
+
+.page-front,
+.page-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background: white;
+}
+
+.page-back {
+    transform: rotateY(180deg);
+}
+
+.page-content {
+    padding: 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.page-number {
+    position: absolute;
+    bottom: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.page-left .page-number {
+    left: 40px;
+}
+
+.page-right .page-number {
+    right: 40px;
+}
+
+.page-front .page-number {
+    right: 40px;
+}
+
+.page-back .page-number {
+    left: 40px;
+}
+
+.photo {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.placeholder-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Navigation */
+.navigation {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.nav-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    background: #f0f0f0;
+}
+
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-indicator {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Page turn animation classes */
+.turn-next {
+    animation: turnPageNext 1s ease-in-out forwards;
+}
+
+.turn-prev {
+    animation: turnPagePrev 1s ease-in-out forwards;
+}
+
+@keyframes turnPageNext {
+    0% {
+        transform: rotateY(0deg);
+    }
+    50% {
+        transform: rotateY(-90deg);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    100% {
+        transform: rotateY(-180deg);
+    }
+}
+
+@keyframes turnPagePrev {
+    0% {
+        transform: rotateY(-180deg);
+    }
+    50% {
+        transform: rotateY(-90deg);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    100% {
+        transform: rotateY(0deg);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+    .book {
+        width: 600px;
+        height: 450px;
+    }
+
+    .page {
+        width: 300px;
+        height: 450px;
+    }
+
+    .page-content {
+        padding: 30px;
+    }
+}
+
+@media (max-width: 650px) {
+    .book {
+        width: 400px;
+        height: 300px;
+        transform: rotateY(-15deg) rotateX(8deg);
+    }
+
+    .page {
+        width: 200px;
+        height: 300px;
+    }
+
+    .page-content {
+        padding: 20px;
+    }
+
+    .placeholder-photo span {
+        font-size: 16px;
+    }
+
+    .nav-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
